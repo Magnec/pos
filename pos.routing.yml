@@ -1,0 +1,83 @@
+pos.page:
+  path: '/pos'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosPageController::page'
+    _title: 'Market POS'
+  requirements:
+    _permission: 'access pos system'
+
+pos.api.products.all:
+  path: '/api/pos/products'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::getAllProducts'
+  methods: [GET]
+  requirements:
+    _permission: 'access pos system'
+
+pos.api.brands:
+  path: '/api/pos/brands'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::getBrands'
+  methods: [GET]
+  requirements:
+    _permission: 'access pos system'
+
+pos.api.product.search:
+  path: '/api/pos/product/{barcode}'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::searchProduct'
+  methods: [GET]
+  requirements:
+    _permission: 'access pos system'
+
+pos.api.product.verify:
+  path: '/api/pos/verify/{barcode}'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::verifyStock'
+  methods: [GET]
+  requirements:
+    _permission: 'access pos system'
+
+pos.api.sale.save:
+  path: '/api/pos/sale'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::saveSale'
+  methods: [POST]
+  requirements:
+    _permission: 'access pos system'
+  options:
+    no_cache: 'TRUE'
+
+pos.api.product.manual:
+  path: '/api/pos/product/manual'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::addManualProduct'
+  methods: [POST]
+  requirements:
+    _permission: 'access pos system'
+  options:
+    no_cache: 'TRUE'
+
+pos.api.quick_menu:
+  path: '/api/pos/quick-menu'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::getQuickMenuItems'
+  methods: [GET]
+  requirements:
+    _permission: 'access pos system'
+
+pos.api.category_products:
+  path: '/api/pos/category/{category_id}'
+  defaults:
+    _controller: '\Drupal\pos\Controller\PosApiController::getCategoryProducts'
+  methods: [GET]
+  requirements:
+    _permission: 'access pos system'
+
+pos.settings:
+  path: '/admin/pos/settings'
+  defaults:
+    _form: '\Drupal\pos\Form\PosSettingsForm'
+    _title: 'POS Sistem Ayarları'
+  requirements:
+    _permission: 'manage pos settings'

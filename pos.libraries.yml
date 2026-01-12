@@ -1,0 +1,12 @@
+pos_app:
+  version: 2.0
+  css:
+    theme:
+      css/pos-styles.css: { weight: 10 }
+      css/pos-styles-quick-menu.css: { weight: 11 }
+  js:
+    js/pos-app.js: { weight: -10, minified: false }
+    js/pos-quick-menu.js: { weight: -9, minified: false }
+  dependencies:
+    - core/drupal
+    - core/drupalSettings

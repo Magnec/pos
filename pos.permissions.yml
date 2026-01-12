@@ -1,0 +1,9 @@
+access pos system:
+  title: 'POS Sistemine Erişim'
+  description: 'POS ekranını kullanma yetkisi'
+  restrict access: true
+
+manage pos settings:
+  title: 'POS Ayarlarını Yönet'
+  description: 'POS sistem ayarlarını düzenleme'
+  restrict access: true

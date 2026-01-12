@@ -1,0 +1,11 @@
+name: 'POS System'
+type: module
+description: 'Modern Market POS Sistemi - Akaryakıt İstasyonu (Hızlı Menü & Kategoriler)'
+package: 'Custom'
+core_version_requirement: ^10 || ^11
+version: '3.8'
+dependencies:
+  - drupal:eck
+  - drupal:user
+
+configure: pos.settings

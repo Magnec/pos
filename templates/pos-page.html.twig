@@ -1,0 +1,293 @@
+{#
+/**
+ * @file
+ * POS Ana Sayfa Template v3.0
+ * TABS YAPISI
+ */
+#}
+
+{{ attach_library('pos/pos_app') }}
+
+<div class="pos-wrapper" data-pos-token="{{ pos_token }}" data-user-id="{{ user_id }}">
+  
+  <div class="pos-header">
+    <div class="pos-header-content">
+      <h1 class="pos-title">
+        <span class="pos-icon">🛒</span>
+        Market POS Sistemi
+      </h1>
+      <div class="pos-user-info">
+        <span class="user-icon">👤</span>
+        <span class="user-name">{{ user_name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="pos-main-container">
+    
+    {# Sol Panel #}
+    <div class="pos-left-panel">
+      
+      {# Barkod Okuyucu #}
+      <div class="pos-barcode-section">
+        <div class="pos-section-title">
+          <span class="section-icon">📱</span>
+          Barkod Okuyucu
+        </div>
+        
+        <div class="barcode-input-container">
+          <input 
+            type="text" 
+            class="barcode-input" 
+            id="barcodeInput" 
+            placeholder="Barkodu okutun veya manuel yazın..." 
+            autocomplete="off"
+            autofocus>
+          <span class="input-icon">🔍</span>
+        </div>
+        
+        {# Alert Mesajları #}
+        <div class="pos-alerts">
+          <div class="pos-alert pos-alert-error" id="errorAlert" style="display: none;">
+            <span class="alert-icon">❌</span>
+            <span class="alert-message"></span>
+          </div>
+          <div class="pos-alert pos-alert-success" id="successAlert" style="display: none;">
+            <span class="alert-icon">✅</span>
+            <span class="alert-message"></span>
+          </div>
+        </div>
+      </div>
+
+      {# 🔥 TABS NAVIGATION #}
+      <div class="pos-tabs-container">
+        <div class="pos-tabs-nav">
+          <button class="pos-tab-btn active" data-tab="quick-menu">
+            <span class="tab-icon">⭐</span>
+            <span>Hızlı Menü</span>
+          </button>
+          <button class="pos-tab-btn" data-tab="categories">
+            <span class="tab-icon">📂</span>
+            <span>Kategoriler</span>
+          </button>
+        </div>
+
+        {# TAB 1: Hızlı Menü #}
+        <div class="pos-tab-content active" id="tab-quick-menu">
+          <div class="pos-tab-panel tab-panel-quick-menu">
+            <div class="quick-menu-grid" id="quickMenuGrid">
+              <div style="grid-column: 1 / -1; text-align: center; padding: 20px; color: #94a3b8;">
+                <div style="font-size: 32px; margin-bottom: 8px;">⏳</div>
+                <div>Yükleniyor...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# TAB 2: Kategoriler #}
+        {% if categories %}
+        <div class="pos-tab-content" id="tab-categories">
+          <div class="pos-tab-panel tab-panel-categories">
+            <div class="categories-grid cols-{{ categories_per_row|default(3) }}" id="categoriesGrid">
+              {% for category in categories %}
+              <div class="category-item" data-category-id="{{ category.id }}">
+                <div class="category-icon">{{ category.icon|default('📦') }}</div>
+                <div class="category-name">{{ category.name }}</div>
+                <div class="category-count">{{ category.count }} ürün</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="pos-tab-content" id="tab-categories">
+          <div class="pos-tab-panel tab-panel-categories">
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+              <div style="font-size: 48px; margin-bottom: 12px;">📂</div>
+              <div style="font-weight: 600;">Kategori bulunamadı</div>
+              <div style="font-size: 13px; margin-top: 8px;">Admin panelden kategori ekleyin</div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      {# Manuel Ürün Ekleme #}
+      <div class="pos-manual-add" id="manualAdd" style="display: none;">
+        <h4 class="manual-title">
+          <span>➕</span> Manuel Ürün Ekle
+        </h4>
+        <div class="manual-form">
+          <input type="text" class="manual-input" id="manualName" placeholder="Ürün Adı" required>
+          <input type="number" class="manual-input" id="manualPrice" placeholder="Fiyat (₺)" step="0.01" required>
+          <input type="text" class="manual-input" id="manualBarcode" placeholder="Barkod Numarası" required>
+          
+          <div style="position: relative;">
+            <input 
+              type="text" 
+              class="manual-input" 
+              id="manualBrand" 
+              placeholder="Marka (yazmaya başlayın...)"
+              autocomplete="off">
+            <input type="hidden" id="manualBrandId">
+            <div class="brand-autocomplete-list" id="brandAutocompleteList"></div>
+          </div>
+          
+          <input type="number" class="manual-input" id="manualStock" placeholder="Stok Miktarı" min="0" step="1">
+          <button class="manual-btn" id="manualAddBtn">
+            <span>+</span> Ürün Ekle
+          </button>
+        </div>
+      </div>
+
+      {# Ürün Listesi #}
+      <div class="pos-products-section">
+        <div class="pos-section-title">
+          <span class="section-icon">🛍️</span>
+          Satış Sepeti
+          <span class="cart-count" id="cartCount">0</span>
+        </div>
+        
+        <div class="pos-product-list" id="productList">
+          <div class="pos-empty-cart">
+            <div class="empty-icon">🛒</div>
+            <p>Sepet boş</p>
+            <small>Ürün eklemek için barkod okutun</small>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+    {# Sağ Panel #}
+    <div class="pos-right-panel">
+      
+      <div class="pos-summary-section">
+        
+        {# Toplam Tutar #}
+        <div class="pos-total-section">
+          <div class="total-label">TOPLAM TUTAR</div>
+          <div class="total-amount">
+            <span id="totalAmount">0,00</span>
+            <span class="currency">₺</span>
+          </div>
+          <div class="total-items">
+            <span id="totalItems">0</span> ürün
+          </div>
+        </div>
+
+        {# Ödeme Butonları #}
+        <div class="pos-payment-buttons">
+          <button class="pos-payment-btn pos-btn-cash" id="btnCash" data-payment="cash">
+            <span class="btn-icon">💵</span>
+            <span class="btn-text">NAKİT</span>
+            <span class="btn-shortcut">F1</span>
+          </button>
+          
+          <button class="pos-payment-btn pos-btn-credit" id="btnCredit" data-payment="credit_card">
+            <span class="btn-icon">💳</span>
+            <span class="btn-text">KREDİ KARTI</span>
+            <span class="btn-shortcut">F2</span>
+          </button>
+          
+          <button class="pos-payment-btn pos-btn-transfer" id="btnTransfer" data-payment="transfer">
+            <span class="btn-icon">🏦</span>
+            <span class="btn-text">HAVALE</span>
+            <span class="btn-shortcut">F3</span>
+          </button>
+        </div>
+
+        {# Hızlı İşlemler #}
+        <div class="pos-quick-actions">
+          <button class="pos-action-btn" id="btnClearCart">
+            <span>🗑️</span> Sepeti Temizle
+          </button>
+        </div>
+
+      </div>
+      
+      {# Loading Overlay #}
+      <div class="pos-loading" id="posLoading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>İşleminiz gerçekleştiriliyor...</p>
+      </div>
+
+    </div>
+    
+  </div>
+
+  {# Keyboard Shortcuts Info #}
+  <div class="pos-shortcuts-info">
+    <div class="shortcut-item">
+      <kbd>F1</kbd> Nakit
+    </div>
+    <div class="shortcut-item">
+      <kbd>F2</kbd> Kredi Kartı
+    </div>
+    <div class="shortcut-item">
+      <kbd>F3</kbd> Havale
+    </div>
+    <div class="shortcut-item">
+      <kbd>ESC</kbd> İptal
+    </div>
+  </div>
+
+  {# 📱 MODAL - Kategori Ürünleri #}
+  <div class="pos-modal-overlay" id="modalOverlay">
+    <div class="pos-modal">
+      <div class="pos-modal-header">
+        <div class="pos-modal-title" id="modalTitle">
+          <span id="modalIcon">📦</span>
+          <span id="modalCategoryName">Kategori</span>
+        </div>
+        <button class="pos-modal-close" id="modalClose">✕</button>
+      </div>
+      
+      <div class="pos-modal-search">
+        <input 
+          type="text" 
+          class="modal-search-input" 
+          id="modalSearch"
+          placeholder="🔍 Ürün ara...">
+      </div>
+      
+      <div class="pos-modal-body" id="modalBody">
+        {# JavaScript ile doldurulacak #}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Tabs Switching
+(function() {
+  'use strict';
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    const tabBtns = document.querySelectorAll('.pos-tab-btn');
+    const tabContents = document.querySelectorAll('.pos-tab-content');
+    
+    tabBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const targetTab = this.getAttribute('data-tab');
+        
+        // Tüm tab'ları pasif yap
+        tabBtns.forEach(function(b) {
+          b.classList.remove('active');
+        });
+        tabContents.forEach(function(content) {
+          content.classList.remove('active');
+        });
+        
+        // Seçili tab'ı aktif yap
+        this.classList.add('active');
+        const targetContent = document.getElementById('tab-' + targetTab);
+        if (targetContent) {
+          targetContent.classList.add('active');
+        }
+      });
+    });
+  });
+})();
+</script>

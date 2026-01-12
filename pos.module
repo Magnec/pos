@@ -1,0 +1,97 @@
+<?php
+
+/**
+ * @file
+ * POS Module - Hooks and helper functions.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function pos_theme($existing, $type, $theme, $path) {
+  return [
+    'pos_page' => [
+      'variables' => [
+        'user_name' => NULL,
+        'user_id' => NULL,
+        'csrf_token' => NULL,
+        'pos_token' => NULL,
+        'categories' => [],
+      ],
+      'template' => 'pos-page',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function pos_entity_presave(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() === 'extras' && $entity->bundle() === 'market_sales_items') {
+    if ($entity->hasField('field_quantity') && $entity->hasField('field_unit_price')) {
+      $quantity = $entity->get('field_quantity')->value ?? 0;
+      $unit_price = $entity->get('field_unit_price')->value ?? 0;
+      $subtotal = $quantity * $unit_price;
+      $entity->set('field_subtotal', $subtotal);
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function pos_entity_delete(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() === 'market_sales_activities' && $entity->bundle() === 'transactions') {
+    if ($entity->hasField('field_market_items')) {
+      $item_ids = $entity->get('field_market_items')->getValue();
+      
+      if (!empty($item_ids)) {
+        $extras_storage = \Drupal::entityTypeManager()->getStorage('extras');
+        $product_storage = \Drupal::entityTypeManager()->getStorage('market');
+        
+        foreach ($item_ids as $item) {
+          if (!empty($item['target_id'])) {
+            try {
+              $sale_item = $extras_storage->load($item['target_id']);
+              
+              if ($sale_item) {
+                if ($sale_item->hasField('field_products') && $sale_item->hasField('field_quantity')) {
+                  $product_id = $sale_item->get('field_products')->target_id;
+                  $quantity = $sale_item->get('field_quantity')->value;
+                  
+                  if ($product_id && $quantity) {
+                    $product = $product_storage->load($product_id);
+                    
+                    if ($product && $product->hasField('field_stock')) {
+                      $current_stock = (int) $product->get('field_stock')->value;
+                      $new_stock = $current_stock + $quantity;
+                      $product->set('field_stock', $new_stock);
+                      $product->save();
+                    }
+                  }
+                }
+                
+                $sale_item->delete();
+              }
+            } catch (\Exception $e) {
+              \Drupal::logger('pos')->error('Satış kalemi silinirken hata: @msg', ['@msg' => $e->getMessage()]);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function pos_page_attachments(array &$attachments) {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  
+  if ($route_name === 'pos.page') {
+    $attachments['#attached']['library'][] = 'pos/pos_app';
+  }
+}
